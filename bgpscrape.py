@@ -12,7 +12,7 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Ge
             'Sec-Fetch-Mode': 'navigate',
             'Sec-Fetch-Site': 'same-origin'}
 
-response_text = requests.get(sys.argv[1], headers=headers).text
+response_text = requests.get(sys.argv[1], headers=headers).text  #python bgpscrep.py https://bgp.he.net/AS22612
 #print(response_text)
 soup = BeautifulSoup(response_text, 'html.parser')
 links = soup.findAll('a')
