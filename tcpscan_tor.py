@@ -7,7 +7,7 @@ import html_logger
 def gen_timestamp():
     return datetime.now().strftime('%d %H:%M:%S')
 
-html_logger.setup('Tot ports results', 'tor_results.html')
+html_logger.setup('Tot ports results', filename='tor_results.html', version='0.0.1')
 
 SOCKS_PORT = 9050
 
