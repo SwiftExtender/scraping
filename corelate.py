@@ -19,15 +19,18 @@ def correlate_session():
     pass
 
 def get_json_paths(d):
-    if isinstance(d, dict):
-        for key, value in d.items():
-            yield f'.{key}'
-            yield from (f'.{key}{p}' for p in get_json_paths(value))
+    def recur(d):
+        #print(d)
+        if isinstance(d, dict):
+            for key, value in d.items():
+                yield f'.{key}'
+                yield from (f'.{key}{p}' for p in get_json_paths(value))
 
-    elif isinstance(d, list):
-        for i, value in enumerate(d):
-            yield f'[{i}]'
-            yield from (f'[{i}]{p}' for p in get_json_paths(value))
+        elif isinstance(d, list):
+            for i, value in enumerate(d):
+                yield f'[{i}]'
+                yield from (f'[{i}]{p}' for p in get_json_paths(value))
+    return ([p for p in recur(d)])
 
 def get_boundary_values():
     pass
@@ -40,16 +43,21 @@ def collect_var_values(scenario_messaging):
     params = []
     allowed_mime_types = ['text/html', 'multipart/form-data', 'application/json']
     ignored_values = ('true', 'false')
+    c = 0
     for sampler in scenario_messaging:
-        #get url param values
+        #get URL param values
         query_string = urlparse(sampler['req_url']).query
         get_params = parse_qs(query_string).values()
         for i in get_params:
             params.append(i)
-        #get post params
-        if req_post_data_mime_type in allowed_mime_types:
-            if req_post_data_mime_type == 'application/json':
-                get_json_paths(req_post_data_text)
+        #get POST params
+        if sampler['req_post_data_mime_type'] in allowed_mime_types:
+            if sampler['req_post_data_mime_type'] == 'application/json':
+                print(sampler['req_post_data_text'])
+                #b = get_json_paths(json.loads(sampler['req_post_data_text']))
+                print(['$'+s for s in get_json_paths(json.loads(sampler['req_post_data_text']))])
+        print(c)
+        c += 1
 
         #print(get_params)
 
