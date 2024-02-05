@@ -1,0 +1,129 @@
+import sys
+import json
+from xml.dom.minidom import parse
+from xml.etree.ElementTree import Element, SubElement, tostring
+from urllib.parse import urlparse, parse_qs
+from jsonpath_ng.parser import parse as json_parse
+import uuid
+
+allowed_mime_types = ('text/html', 'multipart/form-data', 'application/json')
+ignored_values = ('true', 'false', 'file', 'null', 0, 1, 2)
+# root = Element('root')
+# child = SubElement(root, "child")
+# child.text = "I am a child"
+#
+# print(tostring(root))
+import bs4
+#import shutil
+#shutil.copyfile(src, dst)
+global params
+
+def construct_jmx():
+    pass
+
+def correlate_session():
+    pass
+
+def get_json_paths(d):
+    def recur(d):
+        #print(d)
+        if isinstance(d, dict):
+            for key, value in d.items():
+                yield f'.{key}'
+                yield from (f'.{key}{p}' for p in get_json_paths(value))
+
+        elif isinstance(d, list):
+            for i, value in enumerate(d):
+                yield f'[{i}]'
+                yield from (f'[{i}]{p}' for p in get_json_paths(value))
+    return ([p for p in recur(d)])
+
+def get_boundary_values():
+    pass
+
+def correlate_or_not():
+    #req_url, req_post_data, resp_content_mime_type, resp_content
+    pass
+
+def create_variable_table(vars_values_dict, var_source_mimetype):
+    for k, v in vars_values_dict:
+        if str(v).lower() not in ignored_values:
+            if k in params.keys():
+                params[k+'_'+str(uuid.uuid4())] = v
+            else:
+                params[k] = v
+
+def generate_variable_name(var_value):
+    if len(str(var_value)) == 1:
+        pass
+
+def sampler_proc_json(index: str, sampler: dict):
+    temp = {}
+    #print(type(sampler))
+    post_json_params_paths = ['$' + s for s in get_json_paths(json.loads(sampler[index]))]
+    for json_path in post_json_params_paths:
+        param_value = str(json_parse(json_path).find(json.loads(sampler[index]))[0].value)
+        if param_value not in ignored_values:
+            temp[param_value] = json_path
+        else:
+            print(2)
+    return temp
+
+
+def collect_var_values(scenario_messaging: dict):
+    params = {}
+    raw_params = []
+    c = 0
+    for sampler in scenario_messaging:
+        #get POST params
+        if sampler['req_post_data_mime_type'] in allowed_mime_types:
+            if sampler['req_post_data_mime_type'] == 'application/json':
+                raw_params.append(sampler_proc_json('req_post_data_text', sampler))
+            if sampler['resp_content_text'] == 'application/json':
+                raw_params.append(sampler_proc_json('resp_content_text', sampler))
+    print(raw_params)
+                # post_json_params_paths = ['$' + s for s in get_json_paths(json.loads(sampler['req_post_data_text']))]
+                # for json_path in post_json_params_paths:
+                #     print(json_path)
+                #     jsonpath_expression_value = json_parse(json_path)
+                #     print(jsonpath_expression_value.find(json.loads(sampler['req_post_data_text']))[0].value)
+                    #for m in jsonpath_expression_value.find(json.loads(sampler['req_post_data_text'])):
+                    #    print(m.value)
+        #print(c)
+
+
+        #print(get_params)
+
+harfile = sys.argv[1]
+reqs_dict = []
+with open(harfile, 'r', encoding='utf-8') as f:
+    har_data = f.readlines()
+    har_data = ''.join(har_data)
+    hardata = json.loads(har_data)
+    for item in hardata["log"]["entries"]:
+        req_method = item['request']['method']
+        req_url = item['request']['url']
+        req_http_version = item['request']['httpVersion']
+        req_headers = item['request']['headers']
+        req_post_data_mime_type = ''
+        req_post_data_params = ''
+        req_post_data_text = ''
+        resp_status = item['response']['status']
+        resp_content_mime_type = ''
+        resp_content_text = ''
+        #print(req_url)
+        if 'postData' in item['request']:
+            if 'mimeType' in item['request']['postData']:
+                req_post_data_mime_type = item['request']['postData']['mimeType']
+            if 'params' in item['request']['postData']:
+                req_post_data_params = item['request']['postData']['params']
+            req_post_data_text = item['request']['postData']['text']
+        resp_headers = item['response']['headers']
+        if 'content' in item['response']:
+            resp_content_mime_type = item['response']['content']['mimeType']
+            resp_content_text = item['response']['content']['text']
+        #print(c)
+        reqs_dict.append({'req_method': req_method, 'req_url': req_url, 'req_http_version': req_http_version, 'req_headers': req_headers, 'req_post_data_mime_type': req_post_data_mime_type, 'req_post_data_params': req_post_data_params, 'req_post_data_text': req_post_data_text, 'resp_status': resp_status, 'resp_headers': resp_headers, 'resp_content_mime_type': resp_content_mime_type, 'resp_content_text': resp_content_text})
+        #c += 1
+#print(reqs_dict)
+collect_var_values(reqs_dict)
