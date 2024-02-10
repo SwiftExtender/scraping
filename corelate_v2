@@ -1,4 +1,5 @@
 import sys
+import datetime
 import json
 from xml.dom.minidom import parse
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -6,9 +7,28 @@ from urllib.parse import urlparse, parse_qs
 from jsonpath_ng.parser import parse as json_parse
 import uuid
 import sqlite3
-conn = sqlite3.connect('D:\\!progs!\\sqlite\\helper.db')
+from peewee import *
+
+dbname = datetime.now().strftime('%d %H:%M:%S')
+
+def create_db():
+    db = SqliteDatabase(dbname)
+
+class Request():
+    http_sampler = CharField()
+
+class Extractor():
+    request_id = ForeignKeyField(Request)
+    variable_name  = CharField()
+    extractor_path = CharField()
+    original_value = CharField()
+    extractor_type = CharField()
+
+class Correlation():
+    ForeignKeyField()
 
 def show_summary():
+    conn = sqlite3.connect(dbname)
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     table_names = cursor.fetchall()
@@ -25,9 +45,7 @@ ignored_values = ('true', 'false', 'file', 'null', 0, 1, 2)
 # child.text = "I am a child"
 #
 # print(tostring(root))
-import bs4
-#import shutil
-#shutil.copyfile(src, dst)
+
 global params
 
 def construct_jmx():
