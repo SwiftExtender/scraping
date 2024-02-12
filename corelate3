@@ -82,9 +82,12 @@ def get_json_paths(d):
 def get_boundary_values():
     pass
 
-def correlate_or_not():
-    #req_url, req_post_data, resp_content_mime_type, resp_content
-    pass
+def is_valid_uuid(value):
+    try:
+        uuid.UUID(str(value))
+        return True
+    except ValueError:
+        return False
 
 def create_variable_table(vars_values_dict, var_source_mimetype):
     for k, v in vars_values_dict:
@@ -94,22 +97,24 @@ def create_variable_table(vars_values_dict, var_source_mimetype):
             else:
                 params[k] = v
 
-def generate_variable_name(var_value):
-    if len(str(var_value)) == 1:
-        pass
+def generate_json_variable_name(var_value, json_path):
+   if is_valid_uuid(var_value):
+       return 'id_' +  + '_json'
 
-def sampler_proc_json(index: str, row: Request):
+def sampler_proc_json(row, indexname):
     temp = {}
     #print(type(sampler))
-    for r in row.select():
-        post_json_params_paths = ['$' + s for s in get_json_paths(json.loads(r.resp_content_text))]
-        for json_path in post_json_params_paths:
-            param_value = str(json_parse(json_path).find(json.loads(r.resp_content_text))[0].value)
-            if param_value not in ignored_values:
-                temp[param_value] = json_path
+    print(row)
+    post_json_params_paths = ['$' + s for s in get_json_paths(json.loads(getattr(row, indexname)))]
+    for json_path in post_json_params_paths:
+        param_value = str(json_parse(json_path).find(json.loads(getattr(row, indexname)))[0].value)
+        if param_value not in ignored_values and len(param_value) > 1:
+            temp[param_value] = json_path
+            Extractor.insert(request_id=row.id, variable_name=generate_variable_name(param_value), extractor_path=json_path, original_value=param_value,
+                                 extractor_type='json')
                 #Request.create()
-            else:
-                print(2)
+        else:
+            print(2)
     return temp
 
 
@@ -121,9 +126,10 @@ def collect_var_values():
     for row in Request.select():
         #print(row.req_method)
         #print(row.req_url)
-        if row.req_post_data_mime_type in allowed_mime_types:
-            for i in sampler_proc_json(row.req_post_data_text, row):
-                Extractor.insert(request_id = row.id, variable_name='test',extractor_path='',original_value='',extractor_type='')
+        if row.req_post_data_mime_type == 'application/json':
+            sampler_proc_json(row, 'resp_content_text')
+
+                #Extractor.insert(request_id=row.id, variable_name='test', extractor_path='', original_value='', extractor_type='')
         #     #if sampler['req_post_data_mime_type'] == 'application/json':
         #     #    raw_params.append(sampler_proc_json('req_post_data_text', sampler))
         #     if sampler['resp_content_text'] == 'application/json':
@@ -161,8 +167,13 @@ with open(harfile, 'r', encoding='utf-8') as f:
             resp_content_text = item['response']['content']['text']
         #print(c)
         #reqs_dict.append({'req_method': req_method, 'req_url': req_url, 'req_http_version': req_http_version, 'req_headers': req_headers, 'req_post_data_mime_type': req_post_data_mime_type, 'req_post_data_params': req_post_data_params, 'req_post_data_text': req_post_data_text, 'resp_status': resp_status, 'resp_headers': resp_headers, 'resp_content_mime_type': resp_content_mime_type, 'resp_content_text': resp_content_text})
-        Request.create(req_method = req_method, req_url  = req_url, req_http_version=  req_http_version, req_headers  = req_headers, req_post_data_mime_type = req_post_data_mime_type, req_post_data_params  = req_post_data_params ,req_post_data_text  = req_post_data_text,resp_status  = resp_status,resp_content_mime_type= resp_content_mime_type ,resp_content_text = resp_content_text)
+        Request.create(req_method = req_method, req_url = req_url, req_http_version = req_http_version, req_headers = req_headers, req_post_data_mime_type = req_post_data_mime_type, req_post_data_params  = req_post_data_params, req_post_data_text = req_post_data_text, resp_status = resp_status, resp_content_mime_type = resp_content_mime_type, resp_content_text = resp_content_text)
         #c += 1
 #print(reqs_dict)
+#print(Request.select())
+#for stat in Request.select():
+ #   print(stat.resp_content_text)
 collect_var_values()
+print(Request.select())
+print(Extractor.select())
 #show_summary()
