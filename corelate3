@@ -18,6 +18,8 @@ ignored_values = ('true', 'false', 'file', 'null', 0, 1, 2)
 # child = SubElement(root, "child")
 # print(tostring(root))
 
+temp_variable_name_storage = []
+
 class BaseModel(Model):
     class Meta:
         database = db
@@ -98,10 +100,15 @@ def create_variable_table(vars_values_dict, var_source_mimetype):
                 params[k] = v
 
 def generate_json_variable_name(var_value, json_path):
-   if is_valid_uuid(var_value):
-       return 'id_' + json_path + '_json'
+    if is_valid_uuid(var_value):
+        p = 'id_' + json_path.split('.')[-1] + '_json'
+        if p not in temp_variable_name_storage:
+            temp_variable_name_storage.append(p)
+        else:
+            
+        return p
    else:
-       return json_path + '_json'
+       return json_path.split('.')[-1] + '_json'
 
 def sampler_proc_json(row, indexname):
     temp = {}
@@ -182,7 +189,7 @@ with open(harfile, 'r', encoding='utf-8') as f:
  #   print(stat.resp_content_text)
 collect_var_values()
 for stat in Extractor.select():
-    print(stat.variable_name, stat.extractor_path)
+    print(stat.variable_name ,stat.extractor_path, stat.original_value)
 #print(Request.select())
 #print(Extractor.select())
 #show_summary()
