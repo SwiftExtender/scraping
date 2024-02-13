@@ -99,22 +99,29 @@ def create_variable_table(vars_values_dict, var_source_mimetype):
 
 def generate_json_variable_name(var_value, json_path):
    if is_valid_uuid(var_value):
-       return 'id_' +  + '_json'
+       return 'id_' + json_path + '_json'
+   else:
+       return json_path + '_json'
 
 def sampler_proc_json(row, indexname):
     temp = {}
     #print(type(sampler))
-    print(row)
+    #print(row)
+    #print('--------------------------------------------------------')
+    #print(getattr(row, indexname))
     post_json_params_paths = ['$' + s for s in get_json_paths(json.loads(getattr(row, indexname)))]
     for json_path in post_json_params_paths:
         param_value = str(json_parse(json_path).find(json.loads(getattr(row, indexname)))[0].value)
         if param_value not in ignored_values and len(param_value) > 1:
             temp[param_value] = json_path
-            Extractor.insert(request_id=row.id, variable_name=generate_variable_name(param_value), extractor_path=json_path, original_value=param_value,
+            t = Extractor(request_id=row.id, variable_name=generate_json_variable_name(param_value, json_path), extractor_path=json_path, original_value=param_value,
                                  extractor_type='json')
+            t.save()
+
                 #Request.create()
-        else:
-            print(2)
+        #else:
+        #    print(2)
+        #Extractor.save()
     return temp
 
 
@@ -126,7 +133,7 @@ def collect_var_values():
     for row in Request.select():
         #print(row.req_method)
         #print(row.req_url)
-        if row.req_post_data_mime_type == 'application/json':
+        if row.resp_content_mime_type == 'application/json':
             sampler_proc_json(row, 'resp_content_text')
 
                 #Extractor.insert(request_id=row.id, variable_name='test', extractor_path='', original_value='', extractor_type='')
@@ -174,6 +181,8 @@ with open(harfile, 'r', encoding='utf-8') as f:
 #for stat in Request.select():
  #   print(stat.resp_content_text)
 collect_var_values()
-print(Request.select())
-print(Extractor.select())
+for stat in Extractor.select():
+    print(stat.variable_name, stat.extractor_path)
+#print(Request.select())
+#print(Extractor.select())
 #show_summary()
