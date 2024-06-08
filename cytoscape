@@ -1,0 +1,29 @@
+import pandas as pd
+import json
+import py4cytoscape as p4c
+
+p4c.cytoscape_ping()
+p4c.cytoscape_version_info()
+
+# Reset current session for fresh start
+p4c.close_session(False)
+
+network1 = p4c.open_session("C:\\Users\\Admin\\Desktop\\xenforo.cys")
+
+# You can check all available Visual Properties with this function call
+visual_funcs = p4c.get_visual_property_names()
+print(visual_funcs)
+
+# Get views for a network: Cytoscape "may" have multiple views, and that's why it returns list instead of an object.
+view_id_list = p4c.get_network_views()
+# Display IDs of available views
+print(view_id_list)
+
+# Choose visual_property from vps
+x_loc_dict = p4c.get_node_property(visual_property='NODE_X_LOCATION')
+#y_loc_dict = p4c.get_node_property(visual_property='NODE_Y_LOCATION')
+print(x_loc_dict)
+
+# Choose edge_label
+p_edge_labels = p4c.get_node_property(visual_property='EDGE_LABEL')
+print(p_edge_labels)
