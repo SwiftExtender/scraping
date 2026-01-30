@@ -1,0 +1,16 @@
+{
+  "name": "gr2json-codegen",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Andrew",
+  "type": "commonjs",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "graphql": "^16.12.0",
+    "graphql-2-json-schema": "^0.10.0"
+  }
+}
