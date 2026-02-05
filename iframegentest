@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            max-width: 1200px; 
+        }
+        iframe { border: 1px solid #ccc; }
+        button { margin: 10px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Iframe Creation Test</h1>
+    
+    <button onclick="createSingle()">Create Single Iframe</button>
+    <button onclick="createMultiple()">Create Multiple Iframes</button>
+    <button onclick="clearAll()">Clear All</button>
+    
+    <div id="container"></div>
+
+    <script>
+        function createSingle() {
+            const container = document.getElementById('container');
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://yandex.ru';
+            iframe.width = '400';
+            iframe.height = '300';
+            iframe.loading = 'lazy';
+            container.appendChild(iframe);
+        }
+
+        function createMultiple() {
+            const urls = [
+                'https://mail.ru',
+                'https://lenta.ru',
+                'https://afisha.ru'
+            ];
+            const container = document.getElementById('container');
+            urls.forEach(link => {
+                const iframe = document.createElement('iframe');
+                iframe.src = link;
+                iframe.width = '400';
+                iframe.height = '300';
+                iframe.style.border = '1px solid #ccc';
+                container.appendChild(iframe);
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('container').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
